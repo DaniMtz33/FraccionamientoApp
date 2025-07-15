@@ -1,0 +1,8 @@
+# Archivos comunes para Android
+.gradle/
+.idea/
+*.iml
+build/
+local.properties
+*.log
+*.keystore
