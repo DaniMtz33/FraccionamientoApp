@@ -32,7 +32,8 @@ fun GuardScreen(
                 title = { Text(stringResource(R.string.panel_de_guardia)) },
                 actions = {
                     TextButton(onClick = onLogout) {
-                        Text(stringResource(R.string.cerrar_sesion), color = MaterialTheme.colorScheme.onPrimary)
+                        Text(stringResource(R.string.cerrar_sesion),
+                            color = MaterialTheme.colorScheme.primary)
                     }
                 }
             )

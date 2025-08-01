@@ -28,7 +28,7 @@ fun AdminScreen(
                     }) {
                         Text(
                             stringResource(R.string.cerrar_sesion),
-                            color = MaterialTheme.colorScheme.onPrimary
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }

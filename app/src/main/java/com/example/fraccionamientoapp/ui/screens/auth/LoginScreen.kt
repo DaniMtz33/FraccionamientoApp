@@ -14,6 +14,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fraccionamientoapp.R
 import com.example.fraccionamientoapp.auth.FirebaseAuthManager
+import androidx.compose.material.icons.filled.Fingerprint
+import com.example.fraccionamientoapp.auth.BiometricAuthenticator
+import androidx.compose.ui.platform.LocalContext
+import androidx.appcompat.app.AppCompatActivity
+import com.example.fraccionamientoapp.auth.SecureCredentialManager
 
 @Composable
 fun LoginScreen(
@@ -26,6 +31,7 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     Box(
         modifier = Modifier
@@ -79,6 +85,7 @@ fun LoginScreen(
                                 password = password,
                                 onSuccess = {
                                     showError = false
+                                    SecureCredentialManager.saveCredentials(context, email, password)
                                     onLoginSuccess()
                                 },
                                 onFailure = { error ->
@@ -96,6 +103,51 @@ fun LoginScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(stringResource(R.string.iniciar_sesion))
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                IconButton(onClick = {
+                    // 1. Revisa si ya existen credenciales guardadas
+                    val credentials = SecureCredentialManager.getCredentials(context)
+
+                    if (credentials == null) {
+                        // Si no hay nada guardado, no se puede usar la huella todavía
+                        errorMessage = "Primero inicia sesión con tu correo y contraseña para habilitar el acceso con huella."
+                        showError = true
+                        } else {
+                        // Si hay credenciales, procede a pedir la huella
+                        BiometricAuthenticator.showBiometricPrompt(
+                            activity = context as AppCompatActivity,
+                            onSuccess = {
+                                // 3. Si la huella es correcta, usa las credenciales recuperadas para iniciar sesión
+                                FirebaseAuthManager.signIn(
+                                    email = credentials.first,  // email guardado
+                                    password = credentials.second, // contraseña guardada
+                                    onSuccess = {
+                                        // Éxito, el usuario está dentro
+                                        onLoginSuccess()
+                                    },
+                                    onFailure = { error ->
+                                        // En caso de que las credenciales guardadas ya no sean válidas
+                                        showError = true
+                                        errorMessage = "Las credenciales guardadas ya no son válidas. Inicia sesión de nuevo."
+                                    }
+                                )
+                            },
+                            onFailure = { error ->
+                                // Si la autenticación de la huella falla
+                                showError = true
+                                errorMessage = error
+                            }
+                        )
+                    }
+                }) {
+                    Icon(
+                        imageVector = Icons.Default.Fingerprint,
+                        contentDescription = "Iniciar sesión con huella",
+                        modifier = Modifier.size(48.dp) // Hacemos el ícono más grande y fácil de presionar
+                    )
                 }
 
                 if (showError) {
